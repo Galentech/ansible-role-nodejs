@@ -29,6 +29,18 @@
     state: present
   register: node_repo
 
+# fix repo priority for debian 12
+- name: Pin nodejs repo
+  copy:
+    dest: "/etc/apt/preferences.d/nodejs"
+    content: |
+      Package: nodejs
+      Pin: origin https://deb.nodesource.com/node_{{ nodejs_version }}
+      Pin-Priority: 1000
+  tags:
+    - apt_pinning
+  when: ansible_distribution | lower == "debian" and ansible_distribution_major_version is version('12', '==')
+
 - name: Update apt cache if repo was added.
   ansible.builtin.apt: update_cache=yes
   when: node_repo is changed
