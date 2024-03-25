@@ -26,8 +26,8 @@
   copy:
     dest: "/etc/apt/preferences.d/nodejs"
     content: |
-      Package: nodejs
-      Pin: origin https://deb.nodesource.com/node_{{ nodejs_version }}
+      Package: *
+      Pin: origin "deb.nodesource.com"
       Pin-Priority: 1000
   when: ansible_distribution | lower == "debian" and ansible_distribution_major_version is version('12', '==')
 
