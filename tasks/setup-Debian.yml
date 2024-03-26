@@ -22,13 +22,15 @@
   register: node_repo
 
 # fix repo priority for debian 12
+# debian 12 for Skaleet comes with a debian-security repo that contains a superior version of nodejs
+# So we enforce the use of nodesource repo
 - name: Pin nodejs repo
   copy:
     dest: "/etc/apt/preferences.d/nodejs"
     content: |
-      Package: *
+      Package: nodejs
       Pin: origin "deb.nodesource.com"
-      Pin-Priority: 1000
+      Pin-Priority: 990
   when: ansible_distribution | lower == "debian" and ansible_distribution_major_version is version('12', '==')
 
 - name: Update apt cache if repo was added.
@@ -36,7 +38,16 @@
   when: node_repo is changed
   tags: ['skip_ansible_lint']
 
+# We don't specify version because if we do, the repo priority configured above is not respected.
+# We just install the latest version available in the nodesource repo
 - name: Ensure Node.js and npm are installed.
   apt:
     name: nodejs
     state: present
+  when: ansible_distribution | lower == "debian" and ansible_distribution_major_version is version('12', '==')
+
+- name: Ensure Node.js and npm are installed.
+  ansible.builtin.apt:
+    name: "nodejs={{ nodejs_version | regex_replace('x', '') }}*"
+    state: present
+  when: ansible_distribution | lower == "debian" and ansible_distribution_major_version is version('12', '<')
